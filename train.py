@@ -15,7 +15,7 @@ from Utils.preprocess import RandomRotate90Degree
 def get_args():
     parser = argparse.ArgumentParser(description='Train the model on images')
     parser.add_argument('--epochs', '-e', metavar='E', type=int, default=60, help='Number of epochs')
-    parser.add_argument('--batch-size', '-b', dest='batch_size', metavar='B', type=int, default=32, help='Batch size')
+    parser.add_argument('--batch-size', '-b', dest='batch_size', metavar='B', type=int, default=16, help='Batch size')
     parser.add_argument('--learning-rate', '-l', metavar='LR', type=float, default=5e-4, help='Learning rate', dest='lr')
     parser.add_argument('--validation', '-v', dest='val', type=float, default=0.1, help='Percent of the data that is used as validation (0-100)')
     parser.add_argument('--size', '-s', type=int, default=224, help='Size of the images after preprocess', dest='size')
@@ -73,7 +73,7 @@ def train_model(
     criterion = nn.CrossEntropyLoss()
 
     # Learning rate scheduler
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=10, factor=0.9,
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=5, factor=0.9,
                                                      threshold=0.01, min_lr=1e-5)
 
     # Begin training
