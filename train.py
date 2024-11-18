@@ -14,12 +14,12 @@ from Utils.preprocess import RandomRotate90Degree
 
 def get_args():
     parser = argparse.ArgumentParser(description='Train the model on images')
-    parser.add_argument('--epochs', '-e', metavar='E', type=int, default=60, help='Number of epochs')
+    parser.add_argument('--epochs', '-e', metavar='E', type=int, default=100, help='Number of epochs')
     parser.add_argument('--batch-size', '-b', dest='batch_size', metavar='B', type=int, default=16, help='Batch size')
     parser.add_argument('--learning-rate', '-l', metavar='LR', type=float, default=5e-4, help='Learning rate', dest='lr')
     parser.add_argument('--validation', '-v', dest='val', type=float, default=0.1, help='Percent of the data that is used as validation (0-100)')
     parser.add_argument('--size', '-s', type=int, default=224, help='Size of the images after preprocess', dest='size')
-    parser.add_argument('--lambda', '-w', type=float, default=0.2, help="The weight of the Auxiliary Classifier's loss",dest='factor')
+    parser.add_argument('--lambda', '-w', type=float, default=0.3, help="The weight of the Auxiliary Classifier's loss",dest='factor')
     parser.add_argument('--numval', '-n', type=int, default=2, help="The number of validation round in each epoch", dest='num_val')
     parser.add_argument('--scheduler', '-o', type=bool, default=True, help="Enable learning rate scheduler", dest='scheduler')
     return parser.parse_args()
@@ -45,16 +45,21 @@ def train_model(
     ])
     dataset = FPDataset(dir_img, img_size = img_size)
 
-    # Split into train / validation set
-    n_val = int(len(dataset) * val_percent)
-    n_train = len(dataset) - n_val
-    train_set, val_set = random_split(dataset, [n_train, n_val], generator=torch.Generator().manual_seed(0))
-    train_set.transform = transform
-    val_set.transform = None
-
-    # Create dataloader
-    train_loader = DataLoader(train_set, shuffle=True, batch_size=batch_size)
-    val_loader = DataLoader(val_set, shuffle=True, drop_last=True, batch_size=1)
+    # Split into train / validation set and create dataloader
+    if args.num_val > 0:
+        n_val = int(len(dataset) * val_percent)
+        n_train = len(dataset) - n_val
+        train_set, val_set = random_split(dataset, [n_train, n_val], generator=torch.Generator().manual_seed(0))
+        train_set.transform = transform
+        val_set.transform = None
+        train_loader = DataLoader(train_set, shuffle=True, batch_size=batch_size)
+        val_loader = DataLoader(val_set, shuffle=True, drop_last=True, batch_size=1)
+    else:
+        n_val = 0
+        n_train = len(dataset)
+        train_set = FPDataset(dir_img, img_size = img_size)
+        train_set.transform = transform
+        train_loader = DataLoader(train_set, shuffle=True, batch_size=batch_size)
 
     logging.info(f'''Starting training:
             Epochs:          {epochs}
@@ -73,7 +78,7 @@ def train_model(
     criterion = nn.CrossEntropyLoss()
 
     # Learning rate scheduler
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=5, factor=0.9,
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=8, factor=0.9,
                                                      threshold=0.01, min_lr=1e-5)
 
     # Begin training
@@ -118,7 +123,7 @@ def train_model(
                 pbar.set_postfix(**{'loss': loss.item(), 'learning rate': current_lr, 'train accuracy': train_acc})
 
                 # Evaluation round during epoch
-                if total >= division_step or total == n_train:
+                if num_val > 0 and (total >= division_step or total == n_train):
                     division_step += division_step
                     acc = validation(model, val_loader, device)
                     if args.scheduler:
