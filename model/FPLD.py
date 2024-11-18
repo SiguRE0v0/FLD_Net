@@ -1,0 +1,24 @@
+from .modules import *
+
+class FPLDNet(nn.Module):
+    def __init__(self, input_size = 224, patch_size = 8, embed_dim = 256, num_heads = 4):
+        super(FPLDNet, self).__init__()
+        self.input_size = input_size
+        self.patch_size = patch_size
+        self.embed_dim = embed_dim
+        self.num_heads = num_heads
+
+        self.multi_head_attention = MultiHeadAttnBlock(input_size, patch_size, embed_dim, num_heads)
+
+        num_patches = (input_size // patch_size) ** 2
+        self.main_classifier = MainClassifier(input_size, 2, 32, 2)
+        self.auxiliary_classifier = AuxiliaryClassifier(input_size, patch_size,2, 32, embed_dim)
+
+    def forward(self, x):
+        attn_map, attn_output = self.multi_head_attention(x)
+
+        x = torch.cat((x, attn_map), dim=1)
+        logits = self.main_classifier(x)
+        auxiliary_logits = self.auxiliary_classifier(attn_output)
+
+        return logits, auxiliary_logits
