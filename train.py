@@ -44,6 +44,7 @@ def train_model(
     # Create Dataset
     transform = transforms.Compose([
         transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomRotation(30),
         RandomRotate90Degree()
     ])
     dataset = FPDataset(dir_img, img_size = img_size)
