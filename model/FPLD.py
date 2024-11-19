@@ -12,7 +12,7 @@ class FPLDNet(nn.Module):
 
         num_patches = (input_size // patch_size) ** 2
         self.main_classifier = MainClassifier(input_size, 2, 32, 2)
-        self.auxiliary_classifier = AuxiliaryClassifier(input_size, patch_size,2, 32, embed_dim)
+        self.auxiliary_classifier = AuxiliaryClassifier(input_size, patch_size, 2, embed_dim)
 
     def forward(self, x):
         attn_map, attn_output = self.multi_head_attention(x)

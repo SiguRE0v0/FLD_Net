@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class MultiHeadAttnBlock(nn.Module):
-    def __init__(self, image_size=224, patch_size=16, embed_dim=32, num_heads=4):
+    def __init__(self, image_size, patch_size, embed_dim, num_heads):
         super().__init__()
         self.image_size = image_size
         self.patch_size = patch_size
@@ -42,7 +42,7 @@ class MultiHeadAttnBlock(nn.Module):
 
 
 class BottleNeckBlock(nn.Module):
-    def __init__(self, image_size = 224, input_channels = 2, output_channels = 1, stride = 1):
+    def __init__(self, image_size, input_channels, output_channels, stride):
         super().__init__()
         self.image_size = image_size
         self.input_channels = input_channels
@@ -85,14 +85,20 @@ class BottleNeckBlock(nn.Module):
 
 
 class MainClassifier(nn.Module):
-    def __init__(self, image_size = 224, input_channels = 2, output_channels = 32, num_classes = 2):
+    def __init__(self, image_size, input_channels, output_channels, num_classes):
         super().__init__()
         self.image_size = image_size
         self.input_channels = input_channels
         self.output_channels = output_channels
         self.num_classes = num_classes
 
-        self.bottleneck1 = BottleNeckBlock(image_size, input_channels, 32, 2)
+        self.conv_layer = nn.Sequential(
+            nn.Conv2d(input_channels, 32, kernel_size=2, stride=2),
+            nn.BatchNorm2d(32),
+            nn.ReLU(inplace=True)
+        )
+
+        # self.bottleneck1 = BottleNeckBlock(image_size, input_channels, 32, 2)
         self.bottleneck2 = BottleNeckBlock(image_size//2, 32, 32, 1)
         self.bottleneck3 = BottleNeckBlock(image_size//2, 32, 32, 2)
         self.bottleneck4 = BottleNeckBlock(image_size // 4, 32, 32, 1)
@@ -103,7 +109,8 @@ class MainClassifier(nn.Module):
         self.linear = nn.Linear(in_features=32, out_features=num_classes)
 
     def forward(self, x):
-        x = self.bottleneck1(x)
+        x = self.conv_layer(x)
+        # x = self.bottleneck1(x)
         x = self.bottleneck2(x)
         x = self.bottleneck3(x)
         x = self.bottleneck4(x)
@@ -117,7 +124,7 @@ class MainClassifier(nn.Module):
 
 
 class AuxiliaryClassifier(nn.Module):
-    def __init__(self, image_size = 224, patch_size = 16, num_classes = 2, mid_channels = 32, embed_dim = 256):
+    def __init__(self, image_size, patch_size, num_classes, embed_dim):
         super().__init__()
         self.img_size = image_size
         self.patch_size = patch_size
@@ -128,12 +135,10 @@ class AuxiliaryClassifier(nn.Module):
         self.linear = nn.Linear((self.num_patches + 1) * self.embed_dim, num_classes)
         self.bn = nn.BatchNorm1d(num_classes)
         self.relu = nn.ReLU()
-        # self.linear2 = nn.Linear(mid_channels, num_classes)
 
     def forward(self, x):
         x_flat = self.flatten(x)
         x = self.linear(x_flat)
         x = self.bn(x)
         logits = self.relu(x)
-        # logits = self.linear2(x)
         return logits

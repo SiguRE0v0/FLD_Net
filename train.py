@@ -14,9 +14,9 @@ from Utils.preprocess import RandomRotate90Degree
 
 def get_args():
     parser = argparse.ArgumentParser(description='Train the model on images')
-    parser.add_argument('--epochs', '-e', metavar='E', type=int, default=100, help='Number of epochs')
-    parser.add_argument('--batch-size', '-b', dest='batch_size', metavar='B', type=int, default=16, help='Batch size')
-    parser.add_argument('--learning-rate', '-l', metavar='LR', type=float, default=5e-4, help='Learning rate', dest='lr')
+    parser.add_argument('--epochs', '-e', metavar='E', type=int, default=200, help='Number of epochs')
+    parser.add_argument('--batch-size', '-b', dest='batch_size', metavar='B', type=int, default=32, help='Batch size')
+    parser.add_argument('--learning-rate', '-l', metavar='LR', type=float, default=1e-3, help='Learning rate', dest='lr')
     parser.add_argument('--validation', '-v', dest='val', type=float, default=0.1, help='Percent of the data that is used as validation (0-100)')
     parser.add_argument('--size', '-s', type=int, default=224, help='Size of the images after preprocess', dest='size')
     parser.add_argument('--lambda', '-w', type=float, default=0.3, help="The weight of the Auxiliary Classifier's loss",dest='factor')
@@ -24,8 +24,10 @@ def get_args():
     parser.add_argument('--scheduler', '-o', type=bool, default=True, help="Enable learning rate scheduler", dest='scheduler')
     return parser.parse_args()
 
+
 dir_img = './data/training/'
 dir_checkpoint = './checkpoints'
+
 
 def train_model(
         model,
@@ -79,7 +81,7 @@ def train_model(
 
     # Learning rate scheduler
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=8, factor=0.9,
-                                                     threshold=0.01, min_lr=1e-5)
+                                                     threshold=0.01, min_lr=5e-5)
 
     # Begin training
     global_step = 0
