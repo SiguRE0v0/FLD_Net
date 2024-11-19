@@ -22,6 +22,7 @@ def get_args():
     parser.add_argument('--lambda', '-w', type=float, default=0.3, help="The weight of the Auxiliary Classifier's loss",dest='factor')
     parser.add_argument('--numval', '-n', type=int, default=2, help="The number of validation round in each epoch", dest='num_val')
     parser.add_argument('--scheduler', '-o', type=bool, default=True, help="Enable learning rate scheduler", dest='scheduler')
+    parser.add_argument('--load', '-m', type=str, default=False, help='Load .pth model')
     return parser.parse_args()
 
 
@@ -158,6 +159,11 @@ if __name__ == '__main__':
 
     model = FPLDNet(input_size = args.size, patch_size = 16, embed_dim = 32, num_heads = 4)
     model = model.to(device)
+
+    if args.load:
+        state_dict = torch.load(args.load, map_location=device)
+        model.load_state_dict(state_dict)
+        logging.info(f'Model loaded from {args.load}')
 
     torch.cuda.empty_cache()
     train_model(
