@@ -7,7 +7,7 @@ import torchvision.transforms as transforms
 from torch import optim
 from tqdm import tqdm
 import os
-from model import FPLDNet
+from model import FLDNet
 from Utils.dataset import FPDataset
 from Utils.evaluate import validation
 from Utils.preprocess import RandomRotate90Degree
@@ -158,7 +158,7 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     logging.info(f'Using device {device}')
 
-    model = FPLDNet(input_size = args.size, patch_size = 16, embed_dim = 32, num_heads = 4)
+    model = FLDNet(input_size = args.size, patch_size = 16, embed_dim = 32, num_heads = 4)
     model = model.to(device)
 
     if args.load:

@@ -1,1 +1,1 @@
-from .FPLD import FPLDNet
+from .FPLD import FLDNet

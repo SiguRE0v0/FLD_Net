@@ -1,8 +1,8 @@
 from .modules import *
 
-class FPLDNet(nn.Module):
+class FLDNet(nn.Module):
     def __init__(self, input_size = 224, patch_size = 8, embed_dim = 256, num_heads = 4):
-        super(FPLDNet, self).__init__()
+        super(FLDNet, self).__init__()
         self.input_size = input_size
         self.patch_size = patch_size
         self.embed_dim = embed_dim
