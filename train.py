@@ -13,7 +13,7 @@ from Utils.evaluate import validation
 from Utils.preprocess import RandomRotate90Degree
 
 def get_args():
-    parser = argparse.ArgumentParser(description='Train the model on images')
+    parser = argparse.ArgumentParser(description='Training model')
     parser.add_argument('--epochs', '-e', metavar='E', type=int, default=200, help='Number of epochs')
     parser.add_argument('--batch-size', '-b', dest='batch_size', metavar='B', type=int, default=32, help='Batch size')
     parser.add_argument('--learning-rate', '-l', metavar='LR', type=float, default=1e-3, help='Learning rate', dest='lr')
@@ -57,7 +57,7 @@ def train_model(
         train_set.transform = transform
         val_set.transform = None
         train_loader = DataLoader(train_set, shuffle=True, batch_size=batch_size)
-        val_loader = DataLoader(val_set, shuffle=True, drop_last=True, batch_size=1)
+        val_loader = DataLoader(val_set, shuffle=False, drop_last=True, batch_size=1)
     else:
         n_val = 0
         n_train = len(dataset)
