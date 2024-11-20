@@ -11,14 +11,13 @@ class FPDataset(Dataset):
         self.label = []
         self.transform = transform
         self.img_size = img_size
-        self.len = len(self.img)
 
         logging.info('Creating dataset')
         self.img, self.label = traversal.file_traversal(img_dir)
         logging.info(f'Finished creating dataset with {len(self.img)} images')
 
     def __len__(self):
-        return self.len
+        return len(self.img)
 
     def __getitem__(self, idx):
         img_path = self.img[idx]
