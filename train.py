@@ -42,11 +42,6 @@ def train_model(
         save_checkpoint: bool = True
 ):
     # Create Dataset
-    transform = transforms.Compose([
-        transforms.RandomHorizontalFlip(p=0.5),
-        transforms.RandomRotation(30),
-        RandomRotate90Degree()
-    ])
     dataset = FPDataset(dir_img, img_size = img_size)
 
     # Split into train / validation set and create dataloader
@@ -54,15 +49,12 @@ def train_model(
         n_val = int(len(dataset) * val_percent)
         n_train = len(dataset) - n_val
         train_set, val_set = random_split(dataset, [n_train, n_val], generator=torch.Generator().manual_seed(0))
-        train_set.transform = transform
-        val_set.transform = None
         train_loader = DataLoader(train_set, shuffle=True, batch_size=batch_size)
         val_loader = DataLoader(val_set, shuffle=False, drop_last=True, batch_size=1)
     else:
         n_val = 0
         n_train = len(dataset)
         train_set = FPDataset(dir_img, img_size = img_size)
-        train_set.transform = transform
         train_loader = DataLoader(train_set, shuffle=True, batch_size=batch_size)
 
     logging.info(f'''Starting training:
