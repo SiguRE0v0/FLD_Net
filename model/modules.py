@@ -60,13 +60,6 @@ class BottleNeckBlock(nn.Module):
         self.conv3 = nn.Conv2d(self.mid_channels, output_channels, kernel_size=1, stride=1, padding=0, bias=False)
         self.bn3 = nn.BatchNorm2d(output_channels)
 
-        self.shortcut = nn.Sequential()
-        if stride != 1 or input_channels != output_channels:
-            self.shortcut = nn.Sequential(
-                nn.Conv2d(input_channels, output_channels, kernel_size=1, stride=stride, padding=0, bias=False),
-                nn.BatchNorm2d(output_channels)
-            )
-
     def forward(self, x):
         out = self.conv1(x)
         out = self.bn1(out)
@@ -79,7 +72,6 @@ class BottleNeckBlock(nn.Module):
         out = self.conv3(out)
         out = self.bn3(out)
 
-        out += self.shortcut(x)
         out = self.relu(out)
         return out
 
