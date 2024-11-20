@@ -11,7 +11,8 @@ class MultiHeadAttnBlock(nn.Module):
         self.num_heads = num_heads
 
         self.patch_dim = patch_size * patch_size
-        self.patch_embeddings = nn.Conv2d(1, embed_dim, kernel_size=patch_size, stride=patch_size)
+        self.patch_embeddings = nn.Sequential(nn.Conv2d(1, embed_dim, kernel_size=patch_size, stride=patch_size),
+                                              nn.ReLU(inplace=True))
 
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
 

@@ -87,7 +87,7 @@ def train_model(
 
     # Begin training
     global_step = 0
-    best_acc = 0
+    avg_acc = []
     for epoch in range(1, epochs+1):
         model.train()
         epoch_loss = 0
@@ -97,7 +97,7 @@ def train_model(
         correct = 0
         num_val = args.num_val
         division_step = n_train // num_val
-        with tqdm(total=n_train, desc=f'Epoch {epoch}/{epochs}', position=0, leave=True, unit = 'img') as pbar:
+        with tqdm(total=n_train, desc=f'Epoch {epoch}/{epochs}', position=0, leave=False, unit='img') as pbar:
             for batch in train_loader:
                 images, labels = batch
                 images = images.to(device=device, dtype=torch.float32)
@@ -130,17 +130,17 @@ def train_model(
                 if num_val > 0 and (total >= division_step or total == n_train):
                     division_step += division_step
                     acc = validation(model, val_loader, device)
+
+                    if len(avg_acc) == 5:
+                        avg_acc.pop(0)
+
+                    avg_acc.append(acc)
                     if args.scheduler:
                         scheduler.step(acc)
-                    final_accuracy = acc
-                    if best_acc == 0:
-                        best_acc = acc
-                    if acc > best_acc:
-                        best_acc = acc
-                    print('\nValidation accuracy: {}'.format(acc))
-                    print('Best accuracy: {}'.format(best_acc))
 
-        logging.info(f'Epoch: {epoch}, Best acc: {best_acc}, Validate acc: {final_accuracy} , Train acc: {train_acc}')
+                    print('\nValidation accuracy: {}'.format(acc))
+
+        logging.info(f'Epoch:{epoch} | Average acc:{sum(avg_acc) / len(avg_acc)} | Validation acc:{acc} | Train acc:{train_acc}')
 
         # Epoch finished, save model
         if save_checkpoint:
