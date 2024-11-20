@@ -3,15 +3,14 @@ import cv2
 import random
 
 def neg_image(img):
-    img =  np.array(img)
-    neg_img = 255 - img
-    neg_img = cv2.cvtColor(neg_img, cv2.COLOR_BGR2GRAY)
-    neg_img = neg_img / 255.0
+    img = np.array(img)
+    img_max = np.max(img)
+    img_min = np.min(img)
+    img_normalized = (img - img_min) / (img_max - img_min)
+    neg_img = 1.0 - img_normalized
     return neg_img
 
 def cal_grav(img, img_size):
-    # equalized_image = cv2.equalizeHist(img)
-    # _, binary_image = cv2.threshold(equalized_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     moments = cv2.moments(img)
     if moments['m00'] == 0:
         cx, cy = img_size//2, img_size//2

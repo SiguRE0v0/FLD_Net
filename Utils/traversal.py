@@ -17,7 +17,7 @@ def file_traversal(path):
                         img_path = os.path.join(sub_path, img)
                         try:
                             img = Image.open(img_path)
-                            img.convert('RGB')
+                            img.convert('L')
                         except:
                             print('\rError image, skip to next')
                             print(img_path)
@@ -33,7 +33,7 @@ def file_traversal(path):
                     img_path = os.path.join(class_path, img)
                     try:
                         img = Image.open(img_path)
-                        img.convert('RGB')
+                        img.convert('L')
                     except:
                         print('\rError image, skip to next')
                         print(img_path)

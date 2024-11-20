@@ -32,7 +32,7 @@ class FPDataset(Dataset):
     def __getitem__(self, idx):
         img_path = self.img[idx]
         label = self.label[idx]
-        img = Image.open(img_path).convert('RGB')
+        img = Image.open(img_path).convert('L')
 
         if self.transform:
             img = self.transform(img)
