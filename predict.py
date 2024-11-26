@@ -22,30 +22,29 @@ def get_args():
 def predict(
         model,
         device,
-        img_size,
-        batch_size
+        test_set
 ):
-    test_set = FPDataset(dir_img, img_size=img_size, transform=None)
-    test_loader = DataLoader(test_set, shuffle=False, batch_size=batch_size)
-    model.eval()
 
+    model.eval()
+    test_loader = DataLoader(test_set, shuffle=False, batch_size=1, pin_memory=True, num_workers=8)
     # Start predict
     correct = 0
     total = 0
-    with tqdm(total=len(test_set), desc=f'Predicting', position=0, leave=True, unit='img') as pbar:
+
+    with tqdm(total=len(test_set), desc=f'Predicting', position=0, leave=False, unit='img') as pbar:
         for batch in test_loader:
             images, labels = batch
             images = images.to(device=device, dtype=torch.float32)
             labels = labels.to(device=device, dtype=torch.long)
 
             with torch.no_grad():
-                output, _= model(images)
+                output, _ = model(images)
                 _, pred = torch.max(output, 1)
                 total += labels.size(0)
                 correct += (pred == labels).sum().item()
                 pbar.update(images.shape[0])
         accuracy = correct / total
-
+    model.train()
     return accuracy
 
 
@@ -56,6 +55,8 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     logging.info(f'Using device {device}')
 
+    test_set = FPDataset(dir_img, img_size=args.size, transform=None)
+
     model = FLDNet(input_size=args.size, patch_size=16, embed_dim=32, num_heads=4)
     model = model.to(device)
 
@@ -63,9 +64,9 @@ if __name__ == '__main__':
         logging.error(f'No model loaded, check the path of .pth')
         sys.exit()
 
-    state_dict = torch.load(args.load, map_location=device)
+    state_dict = torch.load(args.load)
     model.load_state_dict(state_dict)
     logging.info(f'Model loaded from {args.load}')
 
-    accuracy = predict(model=model, device=device, img_size=args.size, batch_size=args.batch_size)
+    accuracy = predict(model=model, device=device, img_size=args.size, batch_size=args.batch_size, loader=test_loader)
     logging.info(f'Accuracy: {accuracy}')

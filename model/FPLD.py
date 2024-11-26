@@ -1,7 +1,7 @@
 from .modules import *
 
 class FLDNet(nn.Module):
-    def __init__(self, input_size = 224, patch_size = 8, embed_dim = 256, num_heads = 4):
+    def __init__(self, input_size = 224, patch_size = 16, embed_dim = 32, num_heads = 8):
         super(FLDNet, self).__init__()
         self.input_size = input_size
         self.patch_size = patch_size
@@ -10,7 +10,6 @@ class FLDNet(nn.Module):
 
         self.multi_head_attention = MultiHeadAttnBlock(input_size, patch_size, embed_dim, num_heads)
 
-        num_patches = (input_size // patch_size) ** 2
         self.main_classifier = MainClassifier(input_size, 2, 32, 2)
         self.auxiliary_classifier = AuxiliaryClassifier(input_size, patch_size, 2, embed_dim)
 

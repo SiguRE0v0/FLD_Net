@@ -9,10 +9,11 @@ class MultiHeadAttnBlock(nn.Module):
         self.patch_size = patch_size
         self.embed_dim = embed_dim
         self.num_heads = num_heads
+        self.patch_num = (self.image_size // self.patch_size) ** 2
 
         self.patch_dim = patch_size * patch_size
-        self.patch_embeddings = nn.Sequential(nn.Conv2d(1, embed_dim, kernel_size=patch_size, stride=patch_size),
-                                              nn.ReLU(inplace=True))
+        self.patch_embeddings = nn.Sequential(nn.Conv2d(1, 1, kernel_size=patch_size, stride=patch_size),
+                                              nn.Conv2d(1, embed_dim, kernel_size=1, stride=1))
 
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
 
@@ -48,7 +49,7 @@ class BottleNeckBlock(nn.Module):
         self.image_size = image_size
         self.input_channels = input_channels
         self.output_channels = output_channels
-        self.mid_channels = output_channels // 4
+        self.mid_channels = output_channels // 8
 
         self.relu = nn.ReLU(inplace=True)
 
@@ -59,7 +60,7 @@ class BottleNeckBlock(nn.Module):
         self.bn2 = nn.BatchNorm2d(self.mid_channels)
 
         self.conv3 = nn.Conv2d(self.mid_channels, output_channels, kernel_size=1, stride=1, padding=0, bias=False)
-        self.bn3 = nn.BatchNorm2d(output_channels)
+        self.bn3 = nn.BatchNorm2d(self.output_channels)
 
     def forward(self, x):
         out = self.conv1(x)
@@ -85,13 +86,13 @@ class MainClassifier(nn.Module):
         self.output_channels = output_channels
         self.num_classes = num_classes
 
-        self.conv_layer = nn.Sequential(
-            nn.Conv2d(input_channels, 32, kernel_size=2, stride=2),
-            nn.BatchNorm2d(32),
-            nn.ReLU(inplace=True)
+        self.bottleneck1 = nn.Sequential(
+            nn.Conv2d(self.input_channels, 1, kernel_size=1, stride=1, padding=0, bias=False),
+            nn.Conv2d(1, 1, kernel_size=3, stride=2, padding=1, bias=False),
+            nn.Conv2d(1, 32, kernel_size=1, stride=1, padding=0, bias=False)
         )
 
-        # self.bottleneck1 = BottleNeckBlock(image_size, input_channels, 32, 2)
+        # self.bottleneck1 = BottleNeckBlock(image_size, input_channels, 32, 1)
         self.bottleneck2 = BottleNeckBlock(image_size//2, 32, 32, 1)
         self.bottleneck3 = BottleNeckBlock(image_size//2, 32, 32, 2)
         self.bottleneck4 = BottleNeckBlock(image_size // 4, 32, 32, 1)
@@ -102,8 +103,7 @@ class MainClassifier(nn.Module):
         self.linear = nn.Linear(in_features=32, out_features=num_classes)
 
     def forward(self, x):
-        x = self.conv_layer(x)
-        # x = self.bottleneck1(x)
+        x = self.bottleneck1(x)
         x = self.bottleneck2(x)
         x = self.bottleneck3(x)
         x = self.bottleneck4(x)

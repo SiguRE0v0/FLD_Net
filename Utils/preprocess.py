@@ -44,13 +44,3 @@ def patch(img, img_size):
     cx, cy = cal_grav(neg_img, img_size)
     patch_img = get_patch(neg_img, cx, cy, img_size)
     return patch_img
-
-
-class RandomRotate90Degree:
-    def __init__(self):
-        pass
-
-    def __call__(self, img):
-        random_num = (random.randint(0, 3))
-        angle = 90 * random_num
-        return img.rotate(angle)
